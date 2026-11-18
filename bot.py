@@ -4,14 +4,13 @@ import sys
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from google import genai
+from groq import Groq
 
-# Token va Yangi API kalit
+# Token va Groq API kalit
 BOT_TOKEN = "9222915492:AAF9UHj9lvAF9Ke2qFc-AsvYafd6ERtybbY"
-GEMINI_API_KEY = "AQ.Ab8RN6JDw7JngjMHncgOH3bgqir4z1tlag7rmmBeXTkYlsjFpw"
+GROQ_API_KEY = "Gsk_qOoXqxxLQFghcs6MNgXiWGdyb3FYH3Bl6Fl1CBgo2SxinwQM5TmF"
 
-# Google GenAI mijozi
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -22,8 +21,8 @@ dp.include_router(router)
 async def cmd_start(message: Message):
     await message.answer(
         "👋 Assalom alaykum!\n\n"
-        "🤖 Men Google Gemini asosida ishlaydigan sun'iy intellekt yordamchingizman.\n"
-        "💬 Istalgan savolingizni yozing — javob beraman!",
+        "🤖 Men Llama 3 asosida ishlaydigan sun'iy intellekt yordamchingizman.\n"
+        "💬 Istalgan savolingizni yozing — darhol javob beraman!",
         parse_mode="HTML"
     )
 
@@ -31,11 +30,15 @@ async def cmd_start(message: Message):
 async def handle_ai_chat(message: Message):
     await message.bot.send_chat_action(message.chat.id, "typing")
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=message.text,
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "user", "content": message.text}
+            ],
+            temperature=0.7,
         )
-        await message.answer(response.text)
+        answer = completion.choices[0].message.content
+        await message.answer(answer)
     except Exception as e:
         await message.answer(f"❌ Xatolik yuz berdi: {e}")
 
@@ -45,3 +48,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
