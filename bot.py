@@ -6,11 +6,11 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from google import genai
 
-# Token va API kalitlar
+# Token va Yangi API kalit
 BOT_TOKEN = "9222915492:AAF9UHj9lvAF9Ke2qFc-AsvYafd6ERtybbY"
-GEMINI_API_KEY = "AQ.Ab8RN6JAhRoD4lQFsnVRQBa2FTk2Tf9CI7F2sE5MpBhXb8rznQ"
+GEMINI_API_KEY = "AQ.Ab8RN6JDw7JngjMHncgOH3bgqir4z1tlag7rmmBeXTkYlsjFpw"
 
-# Yangi Google GenAI mijozi
+# Google GenAI mijozi
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 bot = Bot(token=BOT_TOKEN)
@@ -31,7 +31,6 @@ async def cmd_start(message: Message):
 async def handle_ai_chat(message: Message):
     await message.bot.send_chat_action(message.chat.id, "typing")
     try:
-        # Yangi formatdagi chaqiruv
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=message.text,
