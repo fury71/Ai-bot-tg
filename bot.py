@@ -4,13 +4,9 @@ import sys
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from groq import Groq
+from duckduckgo_search import DDGS
 
-# Token va Groq API kalit
 BOT_TOKEN = "9222915492:AAF9UHj9lvAF9Ke2qFc-AsvYafd6ERtybbY"
-GROQ_API_KEY = "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"
-
-client = Groq(api_key=GROQ_API_KEY)
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -21,8 +17,8 @@ dp.include_router(router)
 async def cmd_start(message: Message):
     await message.answer(
         "👋 Assalom alaykum!\n\n"
-        "🤖 Men Llama 3 asosida ishlaydigan sun'iy intellekt yordamchingizman.\n"
-        "💬 Istalgan savolingizni yozing — darhol javob beraman!",
+        "🤖 Men bepul sun'iy intellekt yordamchingizman.\n"
+        "💬 Istalgan savolingizni yozing — javob beraman!",
         parse_mode="HTML"
     )
 
@@ -30,17 +26,28 @@ async def cmd_start(message: Message):
 async def handle_ai_chat(message: Message):
     await message.bot.send_chat_action(message.chat.id, "typing")
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "user", "content": message.text}
-            ],
-            temperature=0.7,
-        )
-        answer = completion.choices[0].message.content
+        # DuckDuckGo orqali sun'iy intellektga so'rov yuborish (hech qanday kalit kerak emas)
+        with DDGS() as ddgs:
+            results = list(ddgs.chat(message.text, model="gpt-4o-mini"))
+            if results and isinstance(results, list):
+                answer = results[0].get("message", "Javob topilmadi.")
+            else:
+                # Agar chat ishlamasa, oddiy qidiruv natijasidan olamiz
+                search_res = list(ddgs.text(message.text, max_results=1))
+                answer = search_res[0].get("body", "Kechirasiz, javob berolmadi.") if search_res else "Javob topilmadi."
+                
         await message.answer(answer)
     except Exception as e:
-        await message.answer(f"❌ Xatolik yuz berdi: {e}")
+        # Fallback: agar chat ishlamasa oddiy matnli javob qaytarish
+        try:
+            with DDGS() as ddgs:
+                r = list(ddgs.text(message.text, max_results=1))
+                if r:
+                    await message.answer(r[0].get("body"))
+                else:
+                    await message.answer(f"❌ Xatolik yuz berdi: {e}")
+        except Exception as err:
+            await message.answer(f"❌ Xatolik yuz berdi: {err}")
 
 async def main():
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -48,4 +55,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
