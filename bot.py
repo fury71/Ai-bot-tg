@@ -8,7 +8,7 @@ from groq import Groq
 
 # Token va Groq API kalit
 BOT_TOKEN = "9222915492:AAF9UHj9lvAF9Ke2qFc-AsvYafd6ERtybbY"
-GROQ_API_KEY = "Gsk_qOoXqxxLQFghcs6MNgXiWGdyb3FYH3Bl6Fl1CBgo2SxinwQM5TmF"
+GROQ_API_KEY = "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"
 
 client = Groq(api_key=GROQ_API_KEY)
 
