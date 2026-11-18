@@ -26,28 +26,17 @@ async def cmd_start(message: Message):
 async def handle_ai_chat(message: Message):
     await message.bot.send_chat_action(message.chat.id, "typing")
     try:
-        # DuckDuckGo orqali sun'iy intellektga so'rov yuborish (hech qanday kalit kerak emas)
+        # DuckDuckGo qidiruvi orqali eng yaxshi javobni topish
         with DDGS() as ddgs:
-            results = list(ddgs.chat(message.text, model="gpt-4o-mini"))
-            if results and isinstance(results, list):
-                answer = results[0].get("message", "Javob topilmadi.")
+            results = list(ddgs.text(message.text, max_results=1))
+            if results and len(results) > 0:
+                answer = results[0].get("body", "Kechirasiz, aniq javob topolmadim.")
             else:
-                # Agar chat ishlamasa, oddiy qidiruv natijasidan olamiz
-                search_res = list(ddgs.text(message.text, max_results=1))
-                answer = search_res[0].get("body", "Kechirasiz, javob berolmadi.") if search_res else "Javob topilmadi."
+                answer = "Kechirasiz, bu savolga javob topa olmadim."
                 
         await message.answer(answer)
     except Exception as e:
-        # Fallback: agar chat ishlamasa oddiy matnli javob qaytarish
-        try:
-            with DDGS() as ddgs:
-                r = list(ddgs.text(message.text, max_results=1))
-                if r:
-                    await message.answer(r[0].get("body"))
-                else:
-                    await message.answer(f"❌ Xatolik yuz berdi: {e}")
-        except Exception as err:
-            await message.answer(f"❌ Xatolik yuz berdi: {err}")
+        await message.answer(f"❌ Xatolik yuz berdi: {e}")
 
 async def main():
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
